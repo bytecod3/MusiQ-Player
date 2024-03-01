@@ -4,16 +4,7 @@
 #include <SPI.h>
 #include <Wire.h>
 #include "defs.h"
-#include "menu.h"
-
-/* OLED screen variables */
-#define SCREEN_HEIGHT 64
-#define SCREEN_WIDTH 128
-#define YELLOW_OFFSET 16
-#define OLED_SDA 21
-#define OLED_SCL 22
-U8G2_SSD1306_128X64_NONAME_F_HW_I2C screen(/*R2: rotation 180*/U8G2_R0, /*reset*/U8X8_PIN_NONE, /* clock */ OLED_SCL, /* data */ OLED_SDA);
-
+#include "bitmaps.h"
 
 /* Function prototypes */
 void screenInit();
@@ -22,6 +13,31 @@ void showMenu();
 void showHomepage();
 void cardDetails();
 
+
+/*==================OLED screen variables===================== */
+#define SCREEN_HEIGHT 64
+#define SCREEN_WIDTH 128
+#define YELLOW_OFFSET 16
+#define OLED_SDA 21
+#define OLED_SCL 22
+U8G2_SSD1306_128X64_NONAME_F_HW_I2C screen(/*R2: rotation 180*/U8G2_R0, /*reset*/U8X8_PIN_NONE, /* clock */ OLED_SCL, /* data */ OLED_SDA);
+
+const int NUM_MENU_ITEMS = 6;
+
+char menu_items[NUM_MENU_ITEMS][15] = {
+    {"Home"},
+    {"Music"},
+    {"Shuffle"},
+    {"Equalizer"},
+    {"Settings"},
+    {"About"}
+};
+
+int selected_menu_item = 0; // item currently selected in the menu
+int previous_menu_item; // item before the selected item
+int next_menu_item; // item after the selected item
+
+/*===============================================================*/
 
 void setup() {
 
@@ -32,22 +48,57 @@ void setup() {
 
 void loop() {
 
+    /* update menu items  */
+    previous_menu_item = selected_menu_item - 1;
+    if (previous_menu_item < 0) {
+        previous_menu_item = NUM_MENU_ITEMS - 1;
+    }
+
+    next_menu_item = selected_menu_item + 1;
+    if (next_menu_item > NUM_MENU_ITEMS) {
+        next_menu_item = 0;
+    }
+
     showMenu();
 
 }
 
+/**
+ * @brief Initialize oled screen
+ * @param none
+*/
 void screenInit() {
     screen.begin();
-    screen.firstPage();
-    do {
-        screen.setFont(u8g2_font_ncenB14_tr);
-        screen.drawStr(0,15,"Hello World!");
-    } while ( screen.nextPage() );
+    
+    screen.setColorIndex(1);
+   
 }
 
+/**
+ * @brief Display menu on screen
+ * @param none
+*/
 void showMenu() {
     screen.firstPage();
     do {
-        screen.drawBitmap(0, 0, 128/8, 64, menu_page_1);
+        // selected item background
+        screen.drawBitmap(0, 22, 128/8, 20, icons_array[9]);
+        
+        // previous item
+        screen.setFont(u8g2_font_9x15_mf);
+        screen.drawBitmap(1, 2, 16/8, 16, icons_array[previous_menu_item]); 
+        screen.drawStr(23, 16, menu_items[previous_menu_item]);
+
+        // selected item
+        screen.setFont(u8g2_font_9x15B_mf);
+        screen.drawBitmap(1, 23, 16/8, 16, icons_array[selected_menu_item]); 
+        screen.drawStr(23, 38, menu_items[selected_menu_item]);
+
+        // next item
+        screen.setFont(u8g2_font_9x15_mf);
+        screen.drawBitmap(1, 46, 16/8, 16, icons_array[next_menu_item]); 
+        screen.drawStr(23, 60, menu_items[next_menu_item]);
+
+        
     } while ( screen.nextPage() );
 }
