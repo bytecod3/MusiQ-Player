@@ -1,17 +1,23 @@
 
 #include <esp_err.h>
+#include <driver/gpio.h>
+// #include <esp32-hal-misc.c>
 #include <U8g2lib.h>
 #include <SPI.h>
 #include <Wire.h>
 #include "defs.h"
 #include "bitmaps.h"
+#include "button.h"
+
+int time = millis();
 
 /* Function prototypes */
+void GPIOInit();
 void screenInit();
 void showSplashScreen();
 void showMenu();
 void showHomepage();
-void cardDetails();
+void SDcardDetails();
 
 
 /*==================OLED screen variables===================== */
@@ -61,6 +67,15 @@ void loop() {
 
     showMenu();
 
+}
+
+/**
+ * @brief initialise GPIO
+*/
+void GPIOInit() {
+    for (int i = 0; i < 5; i++ ) {
+        gpio_set_direction(control_buttons[i], GPIO_MODE_INPUT);
+    }
 }
 
 /**
