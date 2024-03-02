@@ -1,15 +1,13 @@
 
 #include <esp_err.h>
 #include <driver/gpio.h>
-// #include <esp32-hal-misc.c>
+#include <Arduino.h>
 #include <U8g2lib.h>
 #include <SPI.h>
 #include <Wire.h>
 #include "defs.h"
 #include "bitmaps.h"
 #include "button.h"
-
-int time = millis();
 
 /* Function prototypes */
 void GPIOInit();
@@ -18,6 +16,15 @@ void showSplashScreen();
 void showMenu();
 void showHomepage();
 void SDcardDetails();
+
+/*===========================Buttons===========================*/
+PushButton upButton(UP_BUTTON_PIN);
+PushButton downButton(DOWN_BUTTON_PIN);
+PushButton menuButton(MENU_BUTTON_PIN);
+PushButton leftButton(LEFT_BUTTON_PIN);
+PushButton rightButton(RIGHT_BUTTON_PIN);
+
+/*=============================================================*/
 
 
 /*==================OLED screen variables===================== */
@@ -45,14 +52,53 @@ int next_menu_item; // item after the selected item
 
 /*===============================================================*/
 
+
 void setup() {
+
+    Serial.begin(115200);
+    delay(100);
+
+    Serial.println("Serial started...\n");
 
     /* initialise screen */
     screenInit();
 
+    /* set debounce times for buttons */
+    upButton.setDebounce(DEBOUNCE_TIME);
+    downButton.setDebounce(DEBOUNCE_TIME);
+    menuButton.setDebounce(DEBOUNCE_TIME);
+    leftButton.setDebounce(DEBOUNCE_TIME);
+    rightButton.setDebounce(DEBOUNCE_TIME);
+
 }
 
 void loop() {
+
+    /* loop function for buttons */
+    upButton.loop();
+    downButton.loop();
+    menuButton.loop();
+    leftButton.loop();
+    rightButton.loop();
+
+    // Serial.print("UP current state: "); Serial.println(upButton.getCurrentState());
+
+    if( (gpio_get_level(UP_BUTTON_PIN) == LOW) && (upButton.isPressed()) ) {
+        Serial.println("up button pressed");
+        /* move one menu item up */
+        selected_menu_item = selected_menu_item - 1;
+        if (selected_menu_item < 0) {
+            selected_menu_item = NUM_MENU_ITEMS - 1;
+        }
+
+    } else if( (gpio_get_level(DOWN_BUTTON_PIN) == LOW) && (downButton.isPressed())) {
+        Serial.println("down button pressed");
+        /* move one menu item up */
+        selected_menu_item = selected_menu_item + 1;
+        if (selected_menu_item >= NUM_MENU_ITEMS) {
+            selected_menu_item = 0;
+        }
+    }
 
     /* update menu items  */
     previous_menu_item = selected_menu_item - 1;
@@ -61,22 +107,15 @@ void loop() {
     }
 
     next_menu_item = selected_menu_item + 1;
-    if (next_menu_item > NUM_MENU_ITEMS) {
+    if (next_menu_item >= NUM_MENU_ITEMS) {
         next_menu_item = 0;
     }
 
     showMenu();
 
+
 }
 
-/**
- * @brief initialise GPIO
-*/
-void GPIOInit() {
-    for (int i = 0; i < 5; i++ ) {
-        gpio_set_direction(control_buttons[i], GPIO_MODE_INPUT);
-    }
-}
 
 /**
  * @brief Initialize oled screen
@@ -94,6 +133,7 @@ void screenInit() {
  * @param none
 */
 void showMenu() {
+    
     screen.firstPage();
     do {
         // selected item background

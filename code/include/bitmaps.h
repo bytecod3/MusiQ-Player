@@ -78,7 +78,6 @@ const unsigned char* icons_array[10] = {
     epd_bitmap_equalizer_icon,
     epd_bitmap_icon_settings,
 	epd_bitmap_about_icon,
-
 	epd_bitmap_arrow_left,
 	epd_bitmap_arrow_right,
 	epd_bitmap_battery_icon,
