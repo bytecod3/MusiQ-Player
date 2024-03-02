@@ -8,14 +8,21 @@
 #include "defs.h"
 #include "bitmaps.h"
 #include "button.h"
+#include "state_machine.h"
+
+/* set DEBUG to 0 to suppress debug messages */
+#define DEBUG 1
 
 /* Function prototypes */
 void GPIOInit();
 void screenInit();
-void showSplashScreen();
+void bootUp();
 void showMenu();
-void showHomepage();
+void showHomeScreen();
 void SDcardDetails();
+
+/* ISRs */
+
 
 /*===========================Buttons===========================*/
 PushButton upButton(UP_BUTTON_PIN);
@@ -52,8 +59,32 @@ int next_menu_item; // item after the selected item
 
 /*===============================================================*/
 
+/*===========================FSM variables============================*/
+/* state timeout timer */
+unsigned long long stateTimeoutCounter = 0;
+
 /* starting state */
-int state = States::HOME;
+int currentState = States::HOME;
+int previousState = States::HOME; /* at start, the current state and previous state are the same */
+
+static void menuButtonISR(void* arg);
+static void upButtonISR(void* arg);
+static void downButtonISR(void* arg);
+static void leftButtonISR(void* arg);
+static void rightButtonISR(void* arg);
+
+/* pointers to ISRs */
+static void (*ptrMenuButtonISR)(void * );
+static void (*ptrUpButtonISR) (void *);
+static void (*ptrDownButtonISR) (void *);
+static void (*ptrLeftButtonISR) (void *);
+static void (*ptrRightButtonISR) (void *);
+
+/* assign ISR function pointer to ISRs */
+
+
+
+/*=====================================================================*/
 
 
 void setup() {
@@ -73,7 +104,13 @@ void setup() {
     leftButton.setDebounce(DEBOUNCE_TIME);
     rightButton.setDebounce(DEBOUNCE_TIME);
 
+    /* display bootup screen */
+    // while( (millis() - stateTimeoutCounter) < BOOTUP_TIMEOUT ) {
+    //     bootUp();
+    // }
+    
 }
+
 
 void loop() {
 
@@ -86,39 +123,87 @@ void loop() {
 
     // Serial.print("UP current state: "); Serial.println(upButton.getCurrentState());
 
-    if(upButton.isPressed()) {
-        Serial.println("up button pressed");
-        /* move one menu item up */
-        selected_menu_item = selected_menu_item - 1;
-        if (selected_menu_item < 0) {
-            selected_menu_item = NUM_MENU_ITEMS - 1;
+    /*=====================FINITE STATE MACHINE=========================*/
+    #if DEBUG == 1
+        Serial.println(getCurrentState(currentState));
+    #endif
+
+    switch (currentState) {
+    case States::HOME:
+        /* menu button clicked  */
+        if(menuButton.isPressed() ) {
+            /* state transition */
+            currentState = States::MENU;
+            previousState = States::HOME;
+
+        }
+        
+        /* display the homescreen page */
+        showHomeScreen();
+
+        break;
+
+    case States::MENU:
+        /* start timeout countdown */
+        stateTimeoutCounter = millis();
+        showMenu();
+
+        break;
+    
+    default:
+        break;
+    }
+
+    /*===================================================================*/
+
+    /*===========================PROCESS BUTTON PRESSES==================*/
+    
+    if (currentState == States::MENU) {
+        /* cycle through menu items */
+        if(upButton.isPressed()) {
+            Serial.println("up button pressed");
+            /* move one menu item up */
+            selected_menu_item = selected_menu_item - 1;
+            if (selected_menu_item < 0) {
+                selected_menu_item = NUM_MENU_ITEMS - 1;
+            }
+
+        } else if(downButton.isPressed()) {
+            Serial.println("down button pressed");
+            /* move one menu item up */
+            selected_menu_item = selected_menu_item + 1;
+            if (selected_menu_item >= NUM_MENU_ITEMS) {
+                selected_menu_item = 0;
+            }
         }
 
-    } else if(downButton.isPressed()) {
-        Serial.println("down button pressed");
-        /* move one menu item up */
-        selected_menu_item = selected_menu_item + 1;
-        if (selected_menu_item >= NUM_MENU_ITEMS) {
-            selected_menu_item = 0;
+        /* update menu items  */
+        previous_menu_item = selected_menu_item - 1;
+        if (previous_menu_item < 0) {
+            previous_menu_item = NUM_MENU_ITEMS - 1;
         }
+
+        next_menu_item = selected_menu_item + 1;
+        if (next_menu_item >= NUM_MENU_ITEMS) {
+            next_menu_item = 0;
+        }
+
     }
 
-    /* update menu items  */
-    previous_menu_item = selected_menu_item - 1;
-    if (previous_menu_item < 0) {
-        previous_menu_item = NUM_MENU_ITEMS - 1;
-    }
-
-    next_menu_item = selected_menu_item + 1;
-    if (next_menu_item >= NUM_MENU_ITEMS) {
-        next_menu_item = 0;
-    }
-
-    showMenu();
+    /*==================================================================*/
 
 
 }
 
+/**
+ * @brief display bootup screen 
+*/
+void bootUp() {
+    screen.firstPage();
+    do {
+        screen.drawStr(10, 25, "MuSiQ v1.0"); // TODO: add logo
+    } while ( screen.nextPage() );
+}
 
 /**
  * @brief Initialize oled screen
@@ -136,6 +221,17 @@ void screenInit() {
  * @param none
 */
 void showMenu() {
+
+    // check for timeout
+    if( millis() - stateTimeoutCounter >= STATE_TIMEOUT ) {
+        // check the previous state 
+        if(currentState == States::MENU && previousState == States::HOME) {
+            /* go back home */
+            currentState = States::HOME;
+            previousState = States::MENU;            
+        }
+        
+    }
 
     screen.firstPage();
     do {
@@ -159,6 +255,7 @@ void showMenu() {
 
         
     } while ( screen.nextPage() );
+
 }
 
 /**
@@ -179,30 +276,30 @@ void showHomeScreen() {
  * ============================= ISRs===============================
 */
 
-static void menuButtonISR(void* arg) {
-    /* chage state to MENU */
-    state = States::MENU;
-}
+// static void menuButtonISR(void* arg) {
+//     /* change state to MENU */
+//     state = States::MENU;
+// }
 
-static void upButtonISR(void* arg) {
-    /* chage state to MENU */
-    state = States::MENU;
-}
+// static void upButtonISR(void* arg) {
+//     /* change state to MENU */
+//     state = States::MENU;
+// }
 
-static void downButtonISR(void* arg) {
-    /* chage state to MENU */
-    state = States::MENU;
-}
+// static void downButtonISR(void* arg) {
+//     /* chage state to MENU */
+//     state = States::MENU;
+// }
 
-static void leftButtonISR(void* arg) {
-    /* chage state to MENU */
-    state = States::MENU;
-}
+// static void leftButtonISR(void* arg) {
+//     /* chage state to MENU */
+//     state = States::MENU;
+// }
 
-static void rightButtonISR(void* arg) {
-    /* chage state to MENU */
-    state = States::MENU;
-}
+// static void rightButtonISR(void* arg) {
+//     /* chage state to MENU */
+//     state = States::MENU;
+// }
 
 
 /*==================================================================*/
