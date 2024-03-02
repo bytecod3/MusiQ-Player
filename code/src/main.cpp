@@ -61,7 +61,8 @@ int next_menu_item; // item after the selected item
 
 /*===========================FSM variables============================*/
 /* state timeout timer */
-unsigned long long stateTimeoutCounter = 0;
+unsigned long long stateTimeoutCounterCurrent = 0;
+unsigned long long stateTimeoutCounterPrevious = 0;
 
 /* starting state */
 int currentState = States::HOME;
@@ -129,7 +130,38 @@ void loop() {
     #endif
 
     switch (currentState) {
-    case States::HOME:
+        case States::HOME:        
+            /* display the homescreen page */
+
+            break;
+
+        case States::MENU:
+            stateTimeoutCounterCurrent = millis();
+            /* check for menu timout */
+            if(stateTimeoutCounterCurrent - stateTimeoutCounterPrevious >= STATE_TIMEOUT) {
+                currentState = previousState;
+
+                /* update timeout variables */
+                stateTimeoutCounterPrevious = stateTimeoutCounterCurrent;
+
+            } else {
+                showMenu();
+            }
+            
+            break;
+        
+        default:
+            break;
+    }
+
+    /*===================================================================*/
+
+    /*===========================PROCESS BUTTON PRESSES==================*/
+
+    /**
+     * HOME STATE 
+    */
+   if( currentState == States::HOME ) {
         /* menu button clicked  */
         if(menuButton.isPressed() ) {
             /* state transition */
@@ -137,27 +169,11 @@ void loop() {
             previousState = States::HOME;
 
         }
-        
-        /* display the homescreen page */
-        showHomeScreen();
-
-        break;
-
-    case States::MENU:
-        /* start timeout countdown */
-        stateTimeoutCounter = millis();
-        showMenu();
-
-        break;
+   }
     
-    default:
-        break;
-    }
-
-    /*===================================================================*/
-
-    /*===========================PROCESS BUTTON PRESSES==================*/
-    
+    /**
+     * MENU STATE 
+    */
     if (currentState == States::MENU) {
         /* cycle through menu items */
         if(upButton.isPressed()) {
@@ -187,6 +203,25 @@ void loop() {
         if (next_menu_item >= NUM_MENU_ITEMS) {
             next_menu_item = 0;
         }
+
+        /* if home button is pressed while we are in MENU state */
+        // if(strcmp(menu_items[selected_menu_item], "Home" ) == 0 ){
+        //     if(menuButton.isPressed()) {
+        //         /* go back home, if no track was playing */
+        //         if(previousState == States::HOME) {
+        //             currentState = States::HOME;
+        //             previousState = States::MENU;
+        //         } else {
+        //             /* if a track was playing, show playing screen */
+        //             currentState = States::PLAYING;
+        //             previousState = States::MENU;
+        //         }
+                
+        //     }
+            
+        // }
+
+        /*TODO: implement logic for other menu items */
 
     }
 
@@ -221,17 +256,6 @@ void screenInit() {
  * @param none
 */
 void showMenu() {
-
-    // check for timeout
-    if( millis() - stateTimeoutCounter >= STATE_TIMEOUT ) {
-        // check the previous state 
-        if(currentState == States::MENU && previousState == States::HOME) {
-            /* go back home */
-            currentState = States::HOME;
-            previousState = States::MENU;            
-        }
-        
-    }
 
     screen.firstPage();
     do {

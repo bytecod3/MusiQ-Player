@@ -13,7 +13,7 @@ enum States{
     ABOUT
 };
 
-#define STATE_TIMEOUT 4000 /* time for idle screen to switch back to home screen */
+#define STATE_TIMEOUT 4000 /* time before switching to previous screen due to inactivity */
 
 void checkState();
 char* getCurrentState(int);

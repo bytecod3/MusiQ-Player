@@ -14,6 +14,4 @@
 #define LEFT_BUTTON_PIN GPIO_NUM_32
 #define RIGHT_BUTTON_PIN GPIO_NUM_25
 
-
-
 #endif
