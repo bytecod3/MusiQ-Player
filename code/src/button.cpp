@@ -1,5 +1,6 @@
 #include "button.h"
 #include <Arduino.h> /* for millis */
+#include <freertos/FreeRTOS.h>
 
 /**
  * @brief constructor - create a push button 
@@ -11,6 +12,13 @@ PushButton::PushButton(gpio_num_t pin_number) {
 
     this->_lastButtonState = 1;
     this->_lastDebounceTime = 0;
+
+    /* create interrupts for push button*/
+    gpio_pullup_en(this->_pin); /* enable pull up resistor */
+    gpio_set_intr_type(this->_pin, GPIO_INTR_NEGEDGE); /* generate interrupts when pin goes from HIGH to LOW */
+    gpio_isr_handler_add(this->);
+
+
     
 }
 

@@ -52,6 +52,9 @@ int next_menu_item; // item after the selected item
 
 /*===============================================================*/
 
+/* starting state */
+int state = States::HOME;
+
 
 void setup() {
 
@@ -83,7 +86,7 @@ void loop() {
 
     // Serial.print("UP current state: "); Serial.println(upButton.getCurrentState());
 
-    if( (gpio_get_level(UP_BUTTON_PIN) == LOW) && (upButton.isPressed()) ) {
+    if(upButton.isPressed()) {
         Serial.println("up button pressed");
         /* move one menu item up */
         selected_menu_item = selected_menu_item - 1;
@@ -91,7 +94,7 @@ void loop() {
             selected_menu_item = NUM_MENU_ITEMS - 1;
         }
 
-    } else if( (gpio_get_level(DOWN_BUTTON_PIN) == LOW) && (downButton.isPressed())) {
+    } else if(downButton.isPressed()) {
         Serial.println("down button pressed");
         /* move one menu item up */
         selected_menu_item = selected_menu_item + 1;
@@ -133,7 +136,7 @@ void screenInit() {
  * @param none
 */
 void showMenu() {
-    
+
     screen.firstPage();
     do {
         // selected item background
@@ -157,3 +160,49 @@ void showMenu() {
         
     } while ( screen.nextPage() );
 }
+
+/**
+ * @brief Show home screen
+*/
+void showHomeScreen() {
+    screen.firstPage() ;
+    do {
+        screen.drawBitmap(0,0, 128/8, 64, home_screen);
+    } while (screen.nextPage() );
+}
+
+/**
+ * @brief get the next state
+*/
+
+/**
+ * ============================= ISRs===============================
+*/
+
+static void menuButtonISR(void* arg) {
+    /* chage state to MENU */
+    state = States::MENU;
+}
+
+static void upButtonISR(void* arg) {
+    /* chage state to MENU */
+    state = States::MENU;
+}
+
+static void downButtonISR(void* arg) {
+    /* chage state to MENU */
+    state = States::MENU;
+}
+
+static void leftButtonISR(void* arg) {
+    /* chage state to MENU */
+    state = States::MENU;
+}
+
+static void rightButtonISR(void* arg) {
+    /* chage state to MENU */
+    state = States::MENU;
+}
+
+
+/*==================================================================*/

@@ -6,11 +6,13 @@
 
 /* FSM states */
 enum States{
-    HOMEPAGE = 0,
+    HOME = 0,
     MENU,
     PLAYING,
     VOLUME_CHANGE,
-    SD_CARD_INFO
+    SD_CARD_INFO,
+    EQ,
+    ABOUT
 
 };
 
@@ -21,9 +23,9 @@ enum States{
 /* push button input pins */
 #define UP_BUTTON_PIN GPIO_NUM_34
 #define DOWN_BUTTON_PIN GPIO_NUM_35
-#define MENU_BUTTON_PIN GPIO_NUM_36
+#define MENU_BUTTON_PIN GPIO_NUM_33
 #define LEFT_BUTTON_PIN GPIO_NUM_32
-#define RIGHT_BUTTON_PIN GPIO_NUM_39
+#define RIGHT_BUTTON_PIN GPIO_NUM_25
 
 
 
