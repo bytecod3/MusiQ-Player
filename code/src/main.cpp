@@ -21,8 +21,9 @@ char message_buffer[20]; /* to hold log messages. Check log.cpp for more details
 int SDCardFoundFlag = 0;
 
 /* sd card info variables */
-char SDCardType[10];
-uint64_t SDCardSize;
+char SDType[10];
+uint64_t SDSize;
+char SDSizeBuffer[10];
 uint32_t noOfFiles;
 
 /* Function prototypes */
@@ -32,7 +33,8 @@ void bootUp();
 void showMenu();
 void showHomeScreen();
 void SDCardInit();
-void SDcardDetails();
+void SDCardInfo();
+void showSDCardInfo();
 
 /*===========================Buttons===========================*/
 PushButton upButton(UP_BUTTON_PIN);
@@ -52,7 +54,7 @@ PushButton rightButton(RIGHT_BUTTON_PIN);
 #define OLED_SCL 22
 U8G2_SSD1306_128X64_NONAME_F_HW_I2C screen(/*R2: rotation 180*/U8G2_R0, /*reset*/U8X8_PIN_NONE, /* clock */ OLED_SCL, /* data */ OLED_SDA);
 
-const int NUM_MENU_ITEMS = 6;
+const int NUM_MENU_ITEMS = 7;
 
 char menu_items[NUM_MENU_ITEMS][15] = {
     {"Home"},
@@ -60,6 +62,7 @@ char menu_items[NUM_MENU_ITEMS][15] = {
     {"Shuffle"},
     {"Equalizer"},
     {"Settings"},
+    {"SD info"},
     {"About"}
 };
 
@@ -111,6 +114,9 @@ void setup() {
     #if DEBUG == 1
         if(SDCardFoundFlag == 1) {
             Serial.println("SDCard found");
+            SDCardInfo();
+            Serial.println(SDType);
+            Serial.println(SDSizeBuffer);
         } else {
             Serial.println(message_buffer);
         }
@@ -156,8 +162,14 @@ void loop() {
             break;
 
         case States::MENU:
+            /* display the menu */
             showMenu();
             
+            break;
+
+        case States::SD_CARD_INFO:
+            /* display SD card details */
+            showSDCardInfo();
             break;
         
         default:
@@ -197,6 +209,11 @@ void loop() {
                     currentState = States::HOME;
                     previousState = States::MENU;
                     break;
+
+                /* sd card info */
+                case 5:
+                    currentState = States::SD_CARD_INFO;
+                    previousState = States::MENU;
                 
                 default:
                     break;
@@ -227,6 +244,15 @@ void loop() {
         }
 
        
+    } else if (currentState == States::SD_CARD_INFO) {
+        /**
+         * SD_CARD_INFO state
+        */
+       if(menuButton.isPressed()) {
+            /* state transition */
+            /* TODO: implement timeout */
+            currentState = States::MENU; // previous state will always be the MENU state
+       }
     }
 
     /*==================================================================*/
@@ -261,10 +287,7 @@ void SDCardInit() {
  * @brief get info about the SD card
 */
 void SDCardInfo() {
-    /* get type of SD card inserted */
     uint8_t SDCardType = SD.cardType();
-
-
     
     if (SDCardType == CARD_NONE) {
         /* card not inserted */
@@ -273,18 +296,52 @@ void SDCardInfo() {
 
     } else {
         
+        /* get type of SD card inserted */
         if(SDCardType == CARD_MMC){
-            strcopy("MMC", SDCardType);
+            strcpy(SDType, "MMC");
         } else if(SDCardType == CARD_SD){
-            Serial.println("SDSC");
+            strcpy(SDType, "SD");
         } else if(SDCardType == CARD_SDHC){
-            Serial.println("SDHC");
+            strcpy(SDType, "SDHC");
         } else {
-            Serial.println("UNKNOWN");
+            strcpy(SDType, "UNKNOWN");
         }
 
+        /* get the size of the SD card */
+        SDSize = SD.cardSize() / (1024 * 1024 * 1024); // size in GB
+        sprintf(SDSizeBuffer, "%d GB\n", SDSize ); /* TODO: Maybe check size of copied buffer?? */
+
     }
- 
+
+}
+
+/**
+ * @brief show SD card info on screen 
+*/
+void showSDCardInfo() {
+    screen.clearBuffer();
+    screen.firstPage();
+    do {
+
+        /* set font */
+        screen.setFont(u8g2_font_7x13_mf);
+        
+        screen.drawStr(34, 11, "SD Card Info");
+        /* sd type */
+        screen.drawStr(1, 25, "TYPE: ");
+        screen.drawStr(40, 25, SDType);
+
+        /* sd size */
+        screen.drawStr(1, 41, "SIZE: ");
+        screen.drawStr(40, 41, SDSizeBuffer);
+
+        /* no of files in system */
+        screen.drawStr(1, 59, "FILES: ");
+        screen.setCursor(46, 59);
+        screen.print(noOfFiles);
+
+    } while( screen.nextPage() );
+
 }
 
 /**
@@ -309,7 +366,7 @@ void screenInit() {
  * @param none
 */
 void showMenu() {
-
+    screen.clearBuffer(); 
     screen.firstPage();
     do {
         // selected item background
@@ -345,35 +402,3 @@ void showHomeScreen() {
     } while (screen.nextPage() );
 }
 
-
-/**
- * ============================= ISRs===============================
-*/
-
-// static void menuButtonISR(void* arg) {
-//     /* change state to MENU */
-//     state = States::MENU;
-// }
-
-// static void upButtonISR(void* arg) {
-//     /* change state to MENU */
-//     state = States::MENU;
-// }
-
-// static void downButtonISR(void* arg) {
-//     /* chage state to MENU */
-//     state = States::MENU;
-// }
-
-// static void leftButtonISR(void* arg) {
-//     /* chage state to MENU */
-//     state = States::MENU;
-// }
-
-// static void rightButtonISR(void* arg) {
-//     /* chage state to MENU */
-//     state = States::MENU;
-// }
-
-
-/*==================================================================*/

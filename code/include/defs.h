@@ -18,7 +18,3 @@
 #define SD_SLAVE_SELECT GPIO_NUM_5
 
 #endif
-
-// sdcard type 
-// sdcard size 
-// no. of files
