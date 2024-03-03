@@ -14,4 +14,11 @@
 #define LEFT_BUTTON_PIN GPIO_NUM_32
 #define RIGHT_BUTTON_PIN GPIO_NUM_25
 
+/* slave select pin for SD card */
+#define SD_SLAVE_SELECT GPIO_NUM_5
+
 #endif
+
+// sdcard type 
+// sdcard size 
+// no. of files

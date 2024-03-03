@@ -1,17 +1,29 @@
 
 #include <esp_err.h>
 #include <driver/gpio.h>
+#include <string.h>
 #include <Arduino.h>
 #include <U8g2lib.h>
+#include <FS.h>
+#include <SD.h>
 #include <SPI.h>
 #include <Wire.h>
 #include "defs.h"
 #include "bitmaps.h"
 #include "button.h"
 #include "state_machine.h"
+#include "log.h"
 
 /* set DEBUG to 0 to suppress debug messages */
-#define DEBUG 0
+#define DEBUG 1
+char message_buffer[20]; /* to hold log messages. Check log.cpp for more details */
+/* flags */
+int SDCardFoundFlag = 0;
+
+/* sd card info variables */
+char SDCardType[10];
+uint64_t SDCardSize;
+uint32_t noOfFiles;
 
 /* Function prototypes */
 void GPIOInit();
@@ -19,10 +31,8 @@ void screenInit();
 void bootUp();
 void showMenu();
 void showHomeScreen();
+void SDCardInit();
 void SDcardDetails();
-
-/* ISRs */
-
 
 /*===========================Buttons===========================*/
 PushButton upButton(UP_BUTTON_PIN);
@@ -81,12 +91,9 @@ static void (*ptrDownButtonISR) (void *);
 static void (*ptrLeftButtonISR) (void *);
 static void (*ptrRightButtonISR) (void *);
 
-/* assign ISR function pointer to ISRs */
-
-
+/* TODO: assign ISR function pointer to ISRs */
 
 /*=====================================================================*/
-
 
 void setup() {
 
@@ -97,6 +104,17 @@ void setup() {
 
     /* initialise screen */
     screenInit();
+
+    /* initialize SD card */
+    SDCardInit();
+
+    #if DEBUG == 1
+        if(SDCardFoundFlag == 1) {
+            Serial.println("SDCard found");
+        } else {
+            Serial.println(message_buffer);
+        }
+    #endif
 
     /* set debounce times for buttons */
     upButton.setDebounce(DEBOUNCE_TIME);
@@ -125,10 +143,10 @@ void loop() {
     // Serial.print("UP current state: "); Serial.println(upButton.getCurrentState());
 
     /*=====================FINITE STATE MACHINE=========================*/
-    #if DEBUG == 1
-        Serial.print("Current:");Serial.println(getCurrentState(currentState));
-        Serial.print("Previous:");Serial.println(getCurrentState(previousState));
-    #endif
+    // #if DEBUG == 1
+    //     Serial.print("Current:");Serial.println(getCurrentState(currentState));
+    //     Serial.print("Previous:");Serial.println(getCurrentState(previousState));
+    // #endif
 
     switch (currentState) {
         case States::HOME:        
@@ -172,8 +190,17 @@ void loop() {
             } 
 
         } else if(menuButton.isPressed()) {
-            Serial.println(selected_menu_item);
-            Serial.println(menu_items[selected_menu_item]);
+            /* process menu choices */
+            switch (selected_menu_item){
+                /* home choice */
+                case 0:
+                    currentState = States::HOME;
+                    previousState = States::MENU;
+                    break;
+                
+                default:
+                    break;
+            }
         }
 
         /* update menu items  */
@@ -216,12 +243,63 @@ void bootUp() {
 }
 
 /**
+ * @brief initialize SD card
+*/
+void SDCardInit() {
+    if(!SD.begin(SD_SLAVE_SELECT)) {
+        /* SD card not found. LOG this error */
+        system_log(LOG_LEVEL::ERROR, "Insert SD", message_buffer);
+        SDCardFoundFlag = 0; /* SD card not found */
+    } else {
+        /* Otherwise SD card found */
+        SDCardFoundFlag = 1;
+        
+    }
+}
+
+/**
+ * @brief get info about the SD card
+*/
+void SDCardInfo() {
+    /* get type of SD card inserted */
+    uint8_t SDCardType = SD.cardType();
+
+
+    
+    if (SDCardType == CARD_NONE) {
+        /* card not inserted */
+        SDCardFoundFlag = 0;
+        system_log(LOG_LEVEL::ERROR, "Insert SD", message_buffer);
+
+    } else {
+        
+        if(SDCardType == CARD_MMC){
+            strcopy("MMC", SDCardType);
+        } else if(SDCardType == CARD_SD){
+            Serial.println("SDSC");
+        } else if(SDCardType == CARD_SDHC){
+            Serial.println("SDHC");
+        } else {
+            Serial.println("UNKNOWN");
+        }
+
+    }
+ 
+}
+
+/**
+ * @brief list music in the SD card
+*/
+void SDCardListMusic() {
+
+}
+
+/**
  * @brief Initialize oled screen
  * @param none
 */
 void screenInit() {
     screen.begin();
-    
     screen.setColorIndex(1);
    
 }
@@ -267,9 +345,6 @@ void showHomeScreen() {
     } while (screen.nextPage() );
 }
 
-/**
- * @brief get the next state
-*/
 
 /**
  * ============================= ISRs===============================
