@@ -6,10 +6,13 @@
 enum States{
     HOME = 0,
     MENU,
+    SELECTING_MUSIC,
     PLAYING,
+    SHUFFLING,
     VOLUME,
     SD_CARD_INFO,
     EQ,
+    SETTINGS,
     ABOUT
 };
 

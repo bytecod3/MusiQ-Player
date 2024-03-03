@@ -11,7 +11,7 @@
 #include "state_machine.h"
 
 /* set DEBUG to 0 to suppress debug messages */
-#define DEBUG 1
+#define DEBUG 0
 
 /* Function prototypes */
 void GPIOInit();
@@ -126,27 +126,19 @@ void loop() {
 
     /*=====================FINITE STATE MACHINE=========================*/
     #if DEBUG == 1
-        Serial.println(getCurrentState(currentState));
+        Serial.print("Current:");Serial.println(getCurrentState(currentState));
+        Serial.print("Previous:");Serial.println(getCurrentState(previousState));
     #endif
 
     switch (currentState) {
         case States::HOME:        
             /* display the homescreen page */
+            showHomeScreen();
 
             break;
 
         case States::MENU:
-            stateTimeoutCounterCurrent = millis();
-            /* check for menu timout */
-            if(stateTimeoutCounterCurrent - stateTimeoutCounterPrevious >= STATE_TIMEOUT) {
-                currentState = previousState;
-
-                /* update timeout variables */
-                stateTimeoutCounterPrevious = stateTimeoutCounterCurrent;
-
-            } else {
-                showMenu();
-            }
+            showMenu();
             
             break;
         
@@ -156,25 +148,12 @@ void loop() {
 
     /*===================================================================*/
 
-    /*===========================PROCESS BUTTON PRESSES==================*/
+    /*===========================PROCESS BUTTON PRESSES FOR DIFFERENT STATES==================*/
 
-    /**
-     * HOME STATE 
-    */
-   if( currentState == States::HOME ) {
-        /* menu button clicked  */
-        if(menuButton.isPressed() ) {
-            /* state transition */
-            currentState = States::MENU;
-            previousState = States::HOME;
-
-        }
-   }
-    
-    /**
-     * MENU STATE 
-    */
-    if (currentState == States::MENU) {
+   if(  currentState == States::MENU  ) {
+        /**
+         * MENU STATE
+        */
         /* cycle through menu items */
         if(upButton.isPressed()) {
             Serial.println("up button pressed");
@@ -190,7 +169,11 @@ void loop() {
             selected_menu_item = selected_menu_item + 1;
             if (selected_menu_item >= NUM_MENU_ITEMS) {
                 selected_menu_item = 0;
-            }
+            } 
+
+        } else if(menuButton.isPressed()) {
+            Serial.println(selected_menu_item);
+            Serial.println(menu_items[selected_menu_item]);
         }
 
         /* update menu items  */
@@ -204,30 +187,22 @@ void loop() {
             next_menu_item = 0;
         }
 
-        /* if home button is pressed while we are in MENU state */
-        // if(strcmp(menu_items[selected_menu_item], "Home" ) == 0 ){
-        //     if(menuButton.isPressed()) {
-        //         /* go back home, if no track was playing */
-        //         if(previousState == States::HOME) {
-        //             currentState = States::HOME;
-        //             previousState = States::MENU;
-        //         } else {
-        //             /* if a track was playing, show playing screen */
-        //             currentState = States::PLAYING;
-        //             previousState = States::MENU;
-        //         }
-                
-        //     }
-            
-        // }
+        
+   } else  if (currentState == States::HOME) {
+        /**
+         * HOME STATE 
+        */
+        /* menu button clicked  */
+        if(menuButton.isPressed() ) {
+            /* state transition */
+            currentState = States::MENU;
+            previousState = States::HOME;  
+        }
 
-        /*TODO: implement logic for other menu items */
-
+       
     }
 
     /*==================================================================*/
-
-
 }
 
 /**
