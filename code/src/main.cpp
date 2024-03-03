@@ -35,6 +35,10 @@ void showHomeScreen();
 void SDCardInit();
 void SDCardInfo();
 void showSDCardInfo();
+void SDCardListMusic(fs::FS &fs, const char * dirname);
+char* allocateMemory();
+void copyFilenameToBuffer(int, char*);
+
 
 /*===========================Buttons===========================*/
 PushButton upButton(UP_BUTTON_PIN);
@@ -70,8 +74,7 @@ int selected_menu_item = 0; // item currently selected in the menu
 int previous_menu_item; // item before the selected item
 int next_menu_item; // item after the selected item
 
-/*===============================================================*/
-
+/*===============================================================*
 /*===========================FSM variables============================*/
 /* state timeout timer */
 unsigned long long stateTimeoutCounterCurrent = 0;
@@ -110,6 +113,14 @@ void setup() {
 
     /* initialize SD card */
     SDCardInit();
+
+    /* get SD card details */
+    if(SDCardFoundFlag == 1) {
+        SDCardInfo();
+    }
+
+    /* dynamically create music list */
+    SDCardListMusic(SD, "/");
 
     #if DEBUG == 1
         if(SDCardFoundFlag == 1) {
@@ -345,11 +356,57 @@ void showSDCardInfo() {
 }
 
 /**
- * @brief list music in the SD card
+ * @brief dynamically allocate memory to hold mp3 file filename 
 */
-void SDCardListMusic() {
+char* allocateMemory() {
+    char* memAdress = (char*) malloc(FILENAME_LENGTH);
+    return memAdress;   
+}
+
+/**
+ * @brief list music in the SD card
+ * All music MUST be on the root of the drive 
+ * No music will be read from inner directories
+*/
+void SDCardListMusic(fs::FS &fs, const char * dirname) {
+
+    if (SDCardFoundFlag == 1) { /* SD card was found */
+        File root = fs.open(dirname);
+        if(!root) {
+            system_log(LOG_LEVEL::ERROR, "Failed to open dir", message_buffer);
+            /* FIXME: return from function?? */
+        } 
+
+        /* open files and get their infos */
+        File file =  root.openNextFile();
+
+        int j = 0; /* loop index */
+        while (file) {
+            file = root.openNextFile();
+
+            if (!file ) {
+                /* no more files */
+                break;
+            } 
+
+            /* TODO: check for file extension and append only MP3 files to music_list */
+            music_list[j] = allocateMemory();
+
+            /* only copy filenames whose length is less than FILENAME_LENGTH */
+            if( strlen(file.name()) < FILENAME_LENGTH ) {
+                strcpy(music_list[j], file.name());
+            }
+
+            j++;            
+
+        }
+
+
+    }
 
 }
+
+
 
 /**
  * @brief Initialize oled screen

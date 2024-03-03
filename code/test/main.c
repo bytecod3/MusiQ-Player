@@ -1,28 +1,34 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-int bar(int i) {
-    printf("This is bar: %d\n", i);
-    return i;
+#define MAX_NO_OF_FILES 10 // max number of file in the SD - get this from the no of files from SD card
+#define FILENAME_LENGTH 20 // file name length including '.mp3' extension
+
+
+char* music_list[MAX_NO_OF_FILES];
+
+
+/**
+ * @brief allocate memory for count number of items 
+ * @param count number of items to allocate memory for 
+*/
+char* allocateMemory(){
+        char* memAdress = (char*) malloc(FILENAME_LENGTH);
+
+        return memAdress;    
 }
 
-typedef int(*f_t)(int);
-
 int main () {
-    f_t f1, f2, f3, f4;
 
-    int p;
-
-    int* q;
-
-    q = &p;
-
-    f1 = &bar;
-
-    int n = f(10);
-    int m = (*f)(30);
-
-    printf("This is main\n");
+    // add items to array 
+    music_list[0] = allocateMemory();
 
 
+    strcpy(music_list[0], "Name1");
+
+    printf("%s \n", music_list[0]);
+
+    return 0;
 
 }
