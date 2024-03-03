@@ -70,10 +70,11 @@ const unsigned char epd_bitmap_shuffle_icon []  = {
 };
 
 // 'sd-card-info-icon', 16x16px
-const unsigned char epd_bitmap_sd_card_info_icon [] PROGMEM = {
+const unsigned char epd_bitmap_sd_card_info_icon [] = {
 	0x00, 0x00, 0x07, 0xfe, 0x1b, 0x6e, 0x3b, 0x6e, 0x5b, 0x6e, 0x5b, 0x6e, 0x40, 0x02, 0x40, 0x02, 
 	0x40, 0x02, 0x40, 0x02, 0x40, 0x02, 0x40, 0x02, 0x40, 0x02, 0x7f, 0xfe, 0x00, 0x00, 0x00, 0x00
 };
+
 
 // 'home', 128x64px
 const unsigned char home_screen [] = {
@@ -157,7 +158,7 @@ const unsigned char* icons_array[icons_array_length] = {
 	epd_bitmap_arrow_left,
 	epd_bitmap_arrow_right,
 	epd_bitmap_battery_icon,
-	epd_bitmap_selected_item_background,
+	epd_bitmap_selected_item_background
 	
 };
 

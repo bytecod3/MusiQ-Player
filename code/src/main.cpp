@@ -369,8 +369,8 @@ void showMenu() {
     screen.clearBuffer(); 
     screen.firstPage();
     do {
-        // selected item background
-        screen.drawBitmap(0, 22, 128/8, 20, icons_array[9]);
+        /* selected item background  */
+        screen.drawBitmap(0, 22, 128/8, 20, icons_array[icons_array_length - 1]);
         
         // previous item
         screen.setFont(u8g2_font_9x15_mf);
