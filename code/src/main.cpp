@@ -131,6 +131,14 @@ void setup() {
         } else {
             Serial.println(message_buffer);
         }
+
+        Serial.println("============MUSIC LIST=============");
+
+        /* list music */
+        for (int i = 0; i < noOfFiles; i++) {
+            Serial.println(music_list[i]);
+        }
+
     #endif
 
     /* set debounce times for buttons */
@@ -306,7 +314,7 @@ void SDCardInfo() {
         system_log(LOG_LEVEL::ERROR, "Insert SD", message_buffer);
 
     } else {
-        
+        SDCardFoundFlag = 1;
         /* get type of SD card inserted */
         if(SDCardType == CARD_MMC){
             strcpy(SDType, "MMC");
@@ -319,8 +327,11 @@ void SDCardInfo() {
         }
 
         /* get the size of the SD card */
-        SDSize = SD.cardSize() / (1024 * 1024 * 1024); // size in GB
-        sprintf(SDSizeBuffer, "%d GB\n", SDSize ); /* TODO: Maybe check size of copied buffer?? */
+        SDSize = SD.cardSize() / (1024 * 1024 * 1024); /* size in GB */
+        sprintf(SDSizeBuffer, "%d GB\n", SDSize ); /* TODO: check size of copied buffer */
+
+        /* no of files is got from the SDCardListMusic Function - that is where we open the SD card and read 
+        the names and sizes of individual files */
 
     }
 
@@ -371,7 +382,8 @@ char* allocateMemory() {
 void SDCardListMusic(fs::FS &fs, const char * dirname) {
 
     if (SDCardFoundFlag == 1) { /* SD card was found */
-        File root = fs.open(dirname);
+        File root = fs.open(dirname); /* dirname is passed as / - to list all music in the root */
+
         if(!root) {
             system_log(LOG_LEVEL::ERROR, "Failed to open dir", message_buffer);
             /* FIXME: return from function?? */
@@ -381,6 +393,8 @@ void SDCardListMusic(fs::FS &fs, const char * dirname) {
         File file =  root.openNextFile();
 
         int j = 0; /* loop index */
+        int _no_of_files = 0; /* to store the number of files found in the system */
+
         while (file) {
             file = root.openNextFile();
 
@@ -397,15 +411,19 @@ void SDCardListMusic(fs::FS &fs, const char * dirname) {
                 strcpy(music_list[j], file.name());
             }
 
-            j++;            
+            j++;    
+            _no_of_files++;        
 
         }
+
+        /* update the number of files */
+        noOfFiles = _no_of_files;
+
 
 
     }
 
 }
-
 
 
 /**
