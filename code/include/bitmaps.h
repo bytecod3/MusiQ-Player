@@ -75,6 +75,12 @@ const unsigned char epd_bitmap_sd_card_info_icon [] = {
 	0x40, 0x02, 0x40, 0x02, 0x40, 0x02, 0x40, 0x02, 0x40, 0x02, 0x7f, 0xfe, 0x00, 0x00, 0x00, 0x00
 };
 
+// 'music-file-icon', 16x16px
+const unsigned char epd_bitmap_music_file_icon [] = {
+	0x00, 0x00, 0x00, 0x00, 0x03, 0x00, 0x02, 0x80, 0x02, 0x40, 0x02, 0x38, 0x02, 0x00, 0x02, 0x00, 
+	0x02, 0x00, 0x02, 0x00, 0x02, 0x00, 0x1a, 0x00, 0x3e, 0x00, 0x7e, 0x00, 0x3c, 0x00, 0x18, 0x00
+};
+
 
 // 'home', 128x64px
 const unsigned char home_screen [] = {
@@ -146,7 +152,7 @@ const unsigned char home_screen [] = {
 
 
 // Array of all bitmaps for convenience. (Total bytes used to store images in PROGMEM = 752)
-const int icons_array_length = 11;
+const int icons_array_length = 12;
 const unsigned char* icons_array[icons_array_length] = {
     epd_bitmap_icon_home,
     epd_bitmap_icon_music,
@@ -155,11 +161,14 @@ const unsigned char* icons_array[icons_array_length] = {
     epd_bitmap_icon_settings,
 	epd_bitmap_sd_card_info_icon,
 	epd_bitmap_about_icon,
+	epd_bitmap_music_file_icon,
 	epd_bitmap_arrow_left,
 	epd_bitmap_arrow_right,
 	epd_bitmap_battery_icon,
 	epd_bitmap_selected_item_background
 	
 };
+
+#define music_icon_index 7
 
 #endif

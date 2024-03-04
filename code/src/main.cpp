@@ -38,6 +38,7 @@ void showSDCardInfo();
 void SDCardListMusic(fs::FS &fs, const char * dirname);
 char* allocateMemory();
 void copyFilenameToBuffer(int, char*);
+void showMusicFiles();
 
 
 /*===========================Buttons===========================*/
@@ -70,6 +71,7 @@ char menu_items[NUM_MENU_ITEMS][15] = {
     {"About"}
 };
 
+/* For cycling through lists of items */
 int selected_menu_item = 0; // item currently selected in the menu
 int previous_menu_item; // item before the selected item
 int next_menu_item; // item after the selected item
@@ -186,6 +188,11 @@ void loop() {
             
             break;
 
+        case States::SELECTING_MUSIC:
+            /* list all the MP3 music in the SD card */
+            showMusicFiles();
+            break;
+
         case States::SD_CARD_INFO:
             /* display SD card details */
             showSDCardInfo();
@@ -229,6 +236,13 @@ void loop() {
                     previousState = States::MENU;
                     break;
 
+
+                /* selecting music */
+                case 1:
+                    currentState = States::SELECTING_MUSIC;
+                    previousState = States::MENU;
+                    break;
+
                 /* sd card info */
                 case 5:
                     currentState = States::SD_CARD_INFO;
@@ -238,18 +252,6 @@ void loop() {
                     break;
             }
         }
-
-        /* update menu items  */
-        previous_menu_item = selected_menu_item - 1;
-        if (previous_menu_item < 0) {
-            previous_menu_item = NUM_MENU_ITEMS - 1;
-        }
-
-        next_menu_item = selected_menu_item + 1;
-        if (next_menu_item >= NUM_MENU_ITEMS) {
-            next_menu_item = 0;
-        }
-
         
    } else  if (currentState == States::HOME) {
         /**
@@ -263,6 +265,33 @@ void loop() {
         }
 
        
+    } else if (currentState == States::SELECTING_MUSIC) {
+        /**
+         * SELECTING_MUSIC STATE   
+        */
+       /* cycle through music files */
+        if(upButton.isPressed()) {
+            /* move one menu item up */
+            selected_menu_item = selected_menu_item - 1;
+            if (selected_menu_item < 0) {
+                selected_menu_item = NUM_MENU_ITEMS - 1;
+            }
+
+        } else if(downButton.isPressed()) {
+            /* move one menu item up */
+            selected_menu_item = selected_menu_item + 1;
+            if (selected_menu_item >= NUM_MENU_ITEMS) {
+                selected_menu_item = 0;
+            } 
+
+        }else if(menuButton.isPressed()) {
+            /*  a song is selected, go to playing mode and start playing the selected song */
+            /* state transition */
+            //currentState = States::PLAYING;
+
+            Serial.println(music_list[selected_menu_item]);
+       }
+
     } else if (currentState == States::SD_CARD_INFO) {
         /**
          * SD_CARD_INFO state
@@ -273,6 +302,18 @@ void loop() {
             currentState = States::MENU; // previous state will always be the MENU state
        }
     }
+
+     /* update menu items  */
+    previous_menu_item = selected_menu_item - 1;
+    if (previous_menu_item < 0) {
+        previous_menu_item = NUM_MENU_ITEMS - 1;
+    }
+
+    next_menu_item = selected_menu_item + 1;
+    if (next_menu_item >= NUM_MENU_ITEMS) {
+        next_menu_item = 0;
+    }
+
 
     /*==================================================================*/
 }
@@ -418,13 +459,39 @@ void SDCardListMusic(fs::FS &fs, const char * dirname) {
 
         /* update the number of files */
         noOfFiles = _no_of_files;
-
-
-
     }
 
 }
 
+/**
+ * @brief list music files on the screen 
+*/
+void showMusicFiles() {
+
+    screen.firstPage();
+    do {
+
+        /* selected item background  */
+        screen.drawBitmap(0, 22, 128/8, 20, icons_array[icons_array_length - 1]);
+
+        // previous item
+        screen.setFont(u8g2_font_8x13_mf);
+        screen.drawBitmap(1, 2, 16/8, 16, icons_array[music_icon_index]); 
+        screen.drawStr(23, 16, music_list[previous_menu_item]);
+
+        // selected item
+        screen.setFont(u8g2_font_8x13B_mf);
+        screen.drawBitmap(1, 23, 16/8, 16, icons_array[music_icon_index]); 
+        screen.drawStr(23, 38, music_list[selected_menu_item]);
+
+        // next item
+        screen.setFont(u8g2_font_8x13_mf);
+        screen.drawBitmap(1, 46, 16/8, 16, icons_array[music_icon_index]); 
+        screen.drawStr(23, 60, music_list[next_menu_item]);
+
+    } while ( screen.nextPage() );
+
+}
 
 /**
  * @brief Initialize oled screen
