@@ -8,6 +8,10 @@ To implement a Finite State Machine on an electronic consumer product
 ### State Diagram
 ![state-diagram](./state-diagram/state-diagram.jpg)
 
+### Stack
+1. C++
+2. Platformio
+
 ### Parts List 
 1. ESP32 WROOM
 2. 0.96" OLED screen

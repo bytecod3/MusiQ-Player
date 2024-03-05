@@ -8,6 +8,9 @@ void checkState() {
     return;
 }
 
+/**
+ * @brief helper function to help debugging the current and previous states
+*/
 char* getCurrentState(int state) {
     switch (state) {
     case States::HOME:
@@ -20,6 +23,10 @@ char* getCurrentState(int state) {
 
     case States::PLAYING:
         return "PLAYING";
+        break;
+
+    case States::SELECTING_MUSIC:
+        return "SELECTING_MUSIC";
         break;
 
     case States::VOLUME:

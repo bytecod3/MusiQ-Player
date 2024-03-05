@@ -32,6 +32,7 @@ void screenInit();
 void bootUp();
 void showMenu();
 void showHomeScreen();
+void showPlayingScreen();
 void SDCardInit();
 void SDCardInfo();
 void showSDCardInfo();
@@ -170,10 +171,10 @@ void loop() {
     // Serial.print("UP current state: "); Serial.println(upButton.getCurrentState());
 
     /*=====================FINITE STATE MACHINE=========================*/
-    // #if DEBUG == 1
-    //     Serial.print("Current:");Serial.println(getCurrentState(currentState));
-    //     Serial.print("Previous:");Serial.println(getCurrentState(previousState));
-    // #endif
+    #if DEBUG == 1
+        Serial.print("Current:");Serial.println(getCurrentState(currentState));
+        // Serial.print("Previous:");Serial.println(getCurrentState(previousState));
+    #endif
 
     switch (currentState) {
         case States::HOME:        
@@ -191,6 +192,11 @@ void loop() {
         case States::SELECTING_MUSIC:
             /* list all the MP3 music in the SD card */
             showMusicFiles();
+            break;
+
+        case States::PLAYING:
+            /* play the selected track and show the playing screen */
+            showPlayingScreen();
             break;
 
         case States::SD_CARD_INFO:
@@ -212,7 +218,6 @@ void loop() {
         */
         /* cycle through menu items */
         if(upButton.isPressed()) {
-            Serial.println("up button pressed");
             /* move one menu item up */
             selected_menu_item = selected_menu_item - 1;
             if (selected_menu_item < 0) {
@@ -220,7 +225,6 @@ void loop() {
             }
 
         } else if(downButton.isPressed()) {
-            Serial.println("down button pressed");
             /* move one menu item up */
             selected_menu_item = selected_menu_item + 1;
             if (selected_menu_item >= NUM_MENU_ITEMS) {
@@ -236,8 +240,7 @@ void loop() {
                     previousState = States::MENU;
                     break;
 
-
-                /* selecting music */
+                /* music choice */
                 case 1:
                     currentState = States::SELECTING_MUSIC;
                     previousState = States::MENU;
@@ -253,6 +256,7 @@ void loop() {
             }
         }
         
+    /*===========================End of MENU state==========================================*/
    } else  if (currentState == States::HOME) {
         /**
          * HOME STATE 
@@ -264,7 +268,7 @@ void loop() {
             previousState = States::HOME;  
         }
 
-       
+    /*================================end of HOME state===================================*/
     } else if (currentState == States::SELECTING_MUSIC) {
         /**
          * SELECTING_MUSIC STATE   
@@ -287,11 +291,25 @@ void loop() {
         }else if(menuButton.isPressed()) {
             /*  a song is selected, go to playing mode and start playing the selected song */
             /* state transition */
-            //currentState = States::PLAYING;
+            currentState = States::PLAYING;
+            //previousState = States::SELECTING_MUSIC;
 
-            Serial.println(music_list[selected_menu_item]);
        }
+       
 
+    /*=======================end of SELECTING_MUSIC state================================*/
+    } else if (currentState == States::PLAYING) {
+        if(menuButton.isPressed()) {
+            /* pause playing track */
+            currentState = States::MENU;
+
+        } else if(upButton.isPressed()) {
+            /* increase volume */
+        } else if(downButton.isPressed()) {
+            /* derease volume */
+        }
+        
+    /*=======================end of PLAYING state================================*/
     } else if (currentState == States::SD_CARD_INFO) {
         /**
          * SD_CARD_INFO state
@@ -301,7 +319,9 @@ void loop() {
             /* TODO: implement timeout */
             currentState = States::MENU; // previous state will always be the MENU state
        }
-    }
+
+    /*==========================end of SD_CARD_INFO state==============================*/
+    } 
 
      /* update menu items  */
     previous_menu_item = selected_menu_item - 1;
@@ -543,4 +563,19 @@ void showHomeScreen() {
         screen.drawBitmap(0,0, 128/8, 64, home_screen);
     } while (screen.nextPage() );
 }
+
+/**
+ * @brief display playing screen animation
+*/
+void showPlayingScreen() {
+    screen.firstPage();
+    do {
+
+        screen.drawCircle(64, 32, 5);
+        screen.setFont(u8g2_font_8x13_mf);
+        screen.drawStr(5, SCREEN_HEIGHT - 15, music_list[selected_menu_item]);
+    } while (screen.nextPage() );
+    
+}
+
 
