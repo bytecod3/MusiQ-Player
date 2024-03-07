@@ -417,7 +417,6 @@ void loop() {
 void cycleThroughMenu(uint8_t state){
 
     previous_menu_item = selected_menu_item - 1;
-
     
     if(state == States::MENU) {
         /* process menu for MENU state*/
@@ -710,25 +709,44 @@ void showHomeScreen() {
  * @brief display playing screen animation
 */
 void showPlayingScreen() {
+    
     screen.firstPage();
-
     do {
+        /* battery icon */
+        /* TODO: make this dynamic with battery */
+
 
         /* eq lines left and right */
         screen.drawLine(0,SCREEN_HEIGHT/2, SCREEN_WIDTH/2 - OUTER_DISC_RADIUS, SCREEN_HEIGHT/2);
         screen.drawLine(SCREEN_WIDTH/2+OUTER_DISC_RADIUS, SCREEN_HEIGHT/2, SCREEN_WIDTH, SCREEN_HEIGHT/2);
-        int r = random(0, 16);
 
-        /* vertical eq line animations */
-        for(int i = 0; i < l; i += EQ_ANIMATION_SPACING) {
-            //screen.drawVLine(i, SCREEN_HEIGHT/2-i*2, i*4);
-            screen.drawVLine(i, SCREEN_HEIGHT/2-r*2, r*2);
-        }
+        /* 1st quarter */
+        int i = random(0, 4); /* for varying the y start point- make the animation more realisitic */
+        screen.drawVLine(2, 28-i, 4-i); 
+        screen.drawVLine(4, 24-i, 16-i);
+        screen.drawVLine(6, 20-i, 24-i);
+        screen.drawVLine(8, 16-i, 32-i); 
+        screen.drawVLine(10, 12-i, 40-i); 
 
-        screen.drawVLine(12, 16, 32); /* TODO: Find the relationship betwn these values and use for loop */
-        screen.drawVLine(14, 20, 24);
-        screen.drawVLine(16, 24, 16);
-        screen.drawVLine(18, 28, 8); 
+        /* 2nd quarter */
+        screen.drawVLine(12, 16-i, 32-i);
+        screen.drawVLine(14, 20-i, 24-i);
+        screen.drawVLine(16, 24-i, 16-i);
+        screen.drawVLine(18, 28-i, 8-i); 
+
+        /* 3rd quarter */
+        screen.drawVLine(24, 28-i, 8-i); 
+        screen.drawVLine(26, 24-i, 16-i);
+        screen.drawVLine(28, 20-i, 24-i);
+        screen.drawVLine(30, 16-i, 32-i); 
+        screen.drawVLine(32, 12-i, 40-i); 
+
+        /* 4th quarter */
+        screen.drawVLine(34, 12-i, 40-i);
+        screen.drawVLine(36, 16-i, 32-i);
+        screen.drawVLine(38, 20-i, 24-i); 
+        screen.drawVLine(40, 24-i, 16-i);
+        screen.drawVLine(42, 28-i, 8-i);
 
         /* two circular discs */
         screen.drawCircle(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, INNER_DISC_RADIUS);
@@ -736,6 +754,33 @@ void showPlayingScreen() {
         screen.setFont(u8g2_font_8x13_mf);
         screen.drawStr(5, SCREEN_HEIGHT-1, music_list[selected_menu_item]);
 
+        /* 5th quarter ? */
+        screen.drawVLine(88, 28-i, 8-i); 
+        screen.drawVLine(90, 24-i, 16-i);
+        screen.drawVLine(92, 20-i, 24-i);
+        screen.drawVLine(94, 16-i, 32-i); 
+        screen.drawVLine(96, 12-i, 40-i); 
+
+        /* 6th quarter */
+        screen.drawVLine(98, 12-i, 40-i);
+        screen.drawVLine(100, 16-i, 32-i);
+        screen.drawVLine(102, 20-i, 24-i);
+        screen.drawVLine(104, 24-i, 16-i);
+        screen.drawVLine(106, 28-i, 8-i); 
+
+        /* 7th quarter */
+        screen.drawVLine(110, 28-i, 8-i); 
+        screen.drawVLine(112, 24-i, 16-i);
+        screen.drawVLine(114, 20-i, 24-i);
+        screen.drawVLine(116, 16-i, 32-i); 
+        screen.drawVLine(118, 12-i, 40-i); 
+
+        /* 8th quarter */
+        screen.drawVLine(120, 16-i, 32-i);
+        screen.drawVLine(122, 20-i, 24-i); 
+        screen.drawVLine(124, 24-i, 16-i);
+        screen.drawVLine(126, 28-i, 8-i);
+        
     } while (screen.nextPage() );
     
 }

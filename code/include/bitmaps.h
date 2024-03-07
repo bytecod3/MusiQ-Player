@@ -166,7 +166,6 @@ const unsigned char* icons_array[icons_array_length] = {
 	epd_bitmap_arrow_right,
 	epd_bitmap_battery_icon,
 	epd_bitmap_selected_item_background
-	
 };
 
 #define music_icon_index 7
