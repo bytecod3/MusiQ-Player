@@ -31,9 +31,11 @@ uint32_t noOfFiles;
 void GPIOInit();
 void screenInit();
 void bootUp();
+void cycleThroughMenu(uint8_t);
 void showMenu();
 void showHomeScreen();
 void showPlayingScreen();
+void showSettingsMenu();
 void SDCardInit();
 void SDCardInfo();
 void showSDCardInfo();
@@ -62,6 +64,7 @@ PushButton rightButton(RIGHT_BUTTON_PIN);
 U8G2_SSD1306_128X64_NONAME_F_HW_I2C screen(/*R2: rotation 180*/U8G2_R0, /*reset*/U8X8_PIN_NONE, /* clock */ OLED_SCL, /* data */ OLED_SDA);
 
 const int NUM_MENU_ITEMS = 7;
+const int NUM_SETTINGS_MENU_ITEMS = 5;
 
 char menu_items[NUM_MENU_ITEMS][15] = {
     {"Home"},
@@ -71,6 +74,14 @@ char menu_items[NUM_MENU_ITEMS][15] = {
     {"Settings"},
     {"SD info"},
     {"About"}
+};
+
+char setting_menu_items[NUM_SETTINGS_MENU_ITEMS][15] = {
+    {"Shuffle on"},
+    {"Shuffle off"},
+    {"Auto sleep"},
+    {"Sort files"},
+    {"Home"}
 };
 
 /* For cycling through lists of items */
@@ -173,7 +184,7 @@ void loop() {
 
     /*=====================FINITE STATE MACHINE=========================*/
     #if DEBUG == 1
-        Serial.print("Current:");Serial.println(getCurrentState(currentState));
+        // Serial.print("Current:");Serial.println(getCurrentState(currentState));
         // Serial.print("Previous:");Serial.println(getCurrentState(previousState));
     #endif
 
@@ -198,6 +209,11 @@ void loop() {
         case States::PLAYING:
             /* play the selected track and show the playing screen */
             showPlayingScreen();
+            break;
+        
+        case States::SETTINGS:
+            /* show settings menu */
+            showSettingsMenu();
             break;
 
         case States::SD_CARD_INFO:
@@ -247,14 +263,23 @@ void loop() {
                     previousState = States::MENU;
                     break;
 
+                /* settings choice */
+                case 4:
+                    currentState = States::SETTINGS;
+                    previousState = States::MENU;
+                    break;
+
                 /* sd card info */
                 case 5:
                     currentState = States::SD_CARD_INFO;
                     previousState = States::MENU;
+                    break;
                 
                 default:
                     break;
+
             }
+
         }
         
     /*===========================End of MENU state==========================================*/
@@ -305,12 +330,41 @@ void loop() {
             currentState = States::MENU;
 
         } else if(upButton.isPressed()) {
-            /* increase volume */
+            /*TODO: increase volume */
         } else if(downButton.isPressed()) {
-            /* derease volume */
+            /* TODO: derease volume */
         }
         
     /*=======================end of PLAYING state================================*/
+    } else if (currentState == States::SETTINGS) {
+        /**
+         * SETTINGS state
+        */
+       /* cycle through menu items */
+        if(upButton.isPressed()) {
+            /* move one menu item up */
+            selected_menu_item = selected_menu_item - 1;
+            if (selected_menu_item < 0) {
+                selected_menu_item = NUM_MENU_ITEMS - 1;
+            }
+
+        } else if(downButton.isPressed()) {
+            /* move one menu item up */
+            selected_menu_item = selected_menu_item + 1;
+            if (selected_menu_item >= NUM_MENU_ITEMS) {
+                selected_menu_item = 0;
+            } 
+
+        }
+    //      else if(menuButton.isPressed()) {
+    //         /* state transition */
+    //         /* show settings options */
+    //         currentState == States::SETTINGS_MENU;
+    //    }
+
+    //    /*=========================end of SETTINGS state ==============================*/
+
+
     } else if (currentState == States::SD_CARD_INFO) {
         /**
          * SD_CARD_INFO state
@@ -323,20 +377,44 @@ void loop() {
 
     /*==========================end of SD_CARD_INFO state==============================*/
     } 
+    
+    /* get the menu next and previous items */
+    cycleThroughMenu(currentState);
+}
 
-     /* update menu items  */
+/**
+* @brief update menu items
+* perform check on the no. of menu items for the current state because main menu and settings menu have different 
+* no. of menu items 
+*/
+void cycleThroughMenu(uint8_t state){
+
     previous_menu_item = selected_menu_item - 1;
-    if (previous_menu_item < 0) {
-        previous_menu_item = NUM_MENU_ITEMS - 1;
+
+    
+    if(state == States::MENU) {
+        /* process menu for MENU state*/
+        if (previous_menu_item < 0) {
+            previous_menu_item = NUM_MENU_ITEMS - 1;
+        } 
+    } else if (currentState == States::SETTINGS) {
+        /* process menu for SETTINGS state*/
+        if (previous_menu_item < 0) {
+            previous_menu_item = NUM_SETTINGS_MENU_ITEMS - 1;
+        } 
     }
 
     next_menu_item = selected_menu_item + 1;
-    if (next_menu_item >= NUM_MENU_ITEMS) {
-        next_menu_item = 0;
+    if(currentState == States::MENU) {
+        if (next_menu_item >= NUM_MENU_ITEMS) {
+            next_menu_item = 0;
+        }
+    } else if( currentState == States::SETTINGS ) {
+        if (next_menu_item >= NUM_SETTINGS_MENU_ITEMS) {
+            next_menu_item = 0;
+        }
     }
 
-
-    /*==================================================================*/
 }
 
 /**
@@ -552,6 +630,32 @@ void showMenu() {
 
         
     } while ( screen.nextPage() );
+
+}
+
+
+/**
+ * @brief show settings menu
+*/
+void showSettingsMenu() {
+    screen.firstPage();
+    do {
+        /* selected item background  */
+        screen.drawBitmap(0, 22, 128/8, 20, icons_array[icons_array_length - 1]);
+
+        screen.setFont(u8g2_font_9x15_mf);
+        screen.drawBitmap(1, 2, 16/8, 16, icons_array[previous_menu_item]); 
+        screen.drawStr(23, 16, setting_menu_items[previous_menu_item]);
+
+        screen.setFont(u8g2_font_9x15B_mf);
+        screen.drawBitmap(1, 23, 16/8, 16, icons_array[selected_menu_item]); 
+        screen.drawStr(23, 38, setting_menu_items[selected_menu_item]);
+
+        screen.setFont(u8g2_font_9x15_mf);
+        screen.drawBitmap(1, 46, 16/8, 16, icons_array[next_menu_item]); 
+        screen.drawStr(23, 60, setting_menu_items[next_menu_item]);
+
+    } while (screen.nextPage() );
 
 }
 

@@ -32,6 +32,10 @@ char* getCurrentState(int state) {
     case States::VOLUME:
         return "VOLUME";
         break;
+
+    case States::SETTINGS:
+        return "SETTINGS";
+        break;
     
     case States::SD_CARD_INFO:
         return "SD_CARD_INFO";
