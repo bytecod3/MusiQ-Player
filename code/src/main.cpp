@@ -304,13 +304,13 @@ void loop() {
             /* move one menu item up */
             selected_menu_item = selected_menu_item - 1;
             if (selected_menu_item < 0) {
-                selected_menu_item = NUM_MENU_ITEMS - 1;
+                selected_menu_item = noOfFiles - 1;
             }
 
         } else if(downButton.isPressed()) {
             /* move one menu item up */
             selected_menu_item = selected_menu_item + 1;
-            if (selected_menu_item >= NUM_MENU_ITEMS) {
+            if (selected_menu_item >= noOfFiles) {
                 selected_menu_item = 0;
             } 
 
@@ -321,7 +321,6 @@ void loop() {
             //previousState = States::SELECTING_MUSIC;
 
        }
-       
 
     /*=======================end of SELECTING_MUSIC state================================*/
     } else if (currentState == States::PLAYING) {
@@ -430,6 +429,11 @@ void cycleThroughMenu(uint8_t state){
         if (previous_menu_item < 0) {
             previous_menu_item = NUM_SETTINGS_MENU_ITEMS - 1;
         } 
+    } else if (state == States::SELECTING_MUSIC) {
+        /* process menu for selecting music */
+        if (previous_menu_item < 0) {
+            previous_menu_item = noOfFiles - 1;
+        } 
     }
 
     next_menu_item = selected_menu_item + 1;
@@ -439,6 +443,10 @@ void cycleThroughMenu(uint8_t state){
         }
     } else if( currentState == States::SETTINGS ) {
         if (next_menu_item >= NUM_SETTINGS_MENU_ITEMS) {
+            next_menu_item = 0;
+        }
+    } else if (currentState == States::SELECTING_MUSIC) {
+        if (next_menu_item >= noOfFiles) {
             next_menu_item = 0;
         }
     }
