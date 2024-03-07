@@ -4,6 +4,7 @@
 #include <string.h>
 #include <Arduino.h>
 #include <U8g2lib.h>
+#include <stdlib.h>
 #include <FS.h>
 #include <SD.h>
 #include <SPI.h>
@@ -569,11 +570,32 @@ void showHomeScreen() {
 */
 void showPlayingScreen() {
     screen.firstPage();
+
     do {
 
-        screen.drawCircle(64, 32, 5);
+        /* eq lines left and right */
+        screen.drawLine(0,SCREEN_HEIGHT/2, SCREEN_WIDTH/2 - OUTER_DISC_RADIUS, SCREEN_HEIGHT/2);
+        screen.drawLine(SCREEN_WIDTH/2+OUTER_DISC_RADIUS, SCREEN_HEIGHT/2, SCREEN_WIDTH, SCREEN_HEIGHT/2);
+        int r = random(0, 16);
+
+        /* vertical eq line animations */
+        for(int i = 0; i < l; i += EQ_ANIMATION_SPACING) {
+            //screen.drawVLine(i, SCREEN_HEIGHT/2-i*2, i*4);
+            screen.drawVLine(i, SCREEN_HEIGHT/2-r*2, r*2);
+
+        }
+
+        screen.drawVLine(12, 16, 32); /* TODO: Find the relationship betwn these values and use for loop */
+        screen.drawVLine(14, 20, 24);
+        screen.drawVLine(16, 24, 16);
+        screen.drawVLine(18, 28, 8); 
+
+        /* two circular discs */
+        screen.drawCircle(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, INNER_DISC_RADIUS);
+        screen.drawCircle(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, OUTER_DISC_RADIUS);
         screen.setFont(u8g2_font_8x13_mf);
-        screen.drawStr(5, SCREEN_HEIGHT - 15, music_list[selected_menu_item]);
+        screen.drawStr(5, SCREEN_HEIGHT-1, music_list[selected_menu_item]);
+
     } while (screen.nextPage() );
     
 }

@@ -23,4 +23,12 @@
 /* to hold mp3 filenames */
 char* music_list[MAX_NO_OF_FILES];
 
+/* playing screen animation variables */
+#define OUTER_DISC_RADIUS 15
+#define INNER_DISC_RADIUS 3
+#define EQ_ANIMATION_SPACING 2
+#define OFFSET 16
+int l = (128/2-OUTER_DISC_RADIUS)/4;
+int h = 16;
+
 #endif
