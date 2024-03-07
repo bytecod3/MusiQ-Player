@@ -81,7 +81,7 @@ char setting_menu_items[NUM_SETTINGS_MENU_ITEMS][15] = {
     {"Shuffle off"},
     {"Auto sleep"},
     {"Sort files"},
-    {"Home"}
+    {"Back"}
 };
 
 /* For cycling through lists of items */
@@ -345,22 +345,50 @@ void loop() {
             /* move one menu item up */
             selected_menu_item = selected_menu_item - 1;
             if (selected_menu_item < 0) {
-                selected_menu_item = NUM_MENU_ITEMS - 1;
+                selected_menu_item = NUM_SETTINGS_MENU_ITEMS - 1;
             }
 
         } else if(downButton.isPressed()) {
             /* move one menu item up */
             selected_menu_item = selected_menu_item + 1;
-            if (selected_menu_item >= NUM_MENU_ITEMS) {
+            if (selected_menu_item >= NUM_SETTINGS_MENU_ITEMS) {
                 selected_menu_item = 0;
             } 
-
         }
-    //      else if(menuButton.isPressed()) {
-    //         /* state transition */
-    //         /* show settings options */
-    //         currentState == States::SETTINGS_MENU;
-    //    }
+         else if(menuButton.isPressed()) {
+            /* state transition */
+            /* show settings options */
+            Serial.println(setting_menu_items[selected_menu_item]);
+
+            switch (selected_menu_item) {
+
+            case 0:
+                /* Shuffle on */
+                /* TODO: process shuffle on - save the config ESP NFS */
+                break;
+            
+            /* shuffle off */
+            case 1:
+                break;
+
+            /* auto sleep */
+            case 2:
+                /* set auto sleep time */
+                break;
+            
+            /* sort files */
+            case 3:
+                break;
+
+            /* back to main menu */
+            case 4:
+                currentState = States::MENU;
+                break;
+            
+            default:
+                break;
+            }
+       }
 
     //    /*=========================end of SETTINGS state ==============================*/
 
@@ -638,6 +666,7 @@ void showMenu() {
  * @brief show settings menu
 */
 void showSettingsMenu() {
+
     screen.firstPage();
     do {
         /* selected item background  */
@@ -686,7 +715,6 @@ void showPlayingScreen() {
         for(int i = 0; i < l; i += EQ_ANIMATION_SPACING) {
             //screen.drawVLine(i, SCREEN_HEIGHT/2-i*2, i*4);
             screen.drawVLine(i, SCREEN_HEIGHT/2-r*2, r*2);
-
         }
 
         screen.drawVLine(12, 16, 32); /* TODO: Find the relationship betwn these values and use for loop */
