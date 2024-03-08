@@ -709,12 +709,18 @@ void showHomeScreen() {
  * @brief display playing screen animation
 */
 void showPlayingScreen() {
-    
+
     screen.firstPage();
     do {
         /* battery icon */
         /* TODO: make this dynamic with battery */
+        screen.drawBitmap(2, 2, 16/8, 16, icons_array[10]);
+        screen.setFont(u8g2_font_8x13_mf);
+        screen.drawStr(20, 15, "10%");
 
+        /* music file index - show at the top right of screen */
+        screen.setCursor(SCREEN_WIDTH - 5, 15);
+        screen.print(selected_menu_item); /* the selected menu item is the file number - previous state is SELECTING_MUSIC */
 
         /* eq lines left and right */
         screen.drawLine(0,SCREEN_HEIGHT/2, SCREEN_WIDTH/2 - OUTER_DISC_RADIUS, SCREEN_HEIGHT/2);
