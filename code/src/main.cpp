@@ -901,7 +901,6 @@ void showPlayingScreen() {
     
 }
 
-
 /**
  *@brief update NVS if the user changes the device settings 
  *@param Settings* object containing the values of the settings fields
@@ -909,9 +908,30 @@ void showPlayingScreen() {
  */
 void updateSettings(Settings* setting) {
 
+    /* open 'settings' namespace */
+    user_settings.begin("settings", true); 
+
     /* read the current values from user namespace */
-    
-  setting->auto_sleep = 0;
-  setting->shuffle = 0;
-  setting->sort_files = 0;  
+    uint8_t auto_sleep = user_settings.getUInt("auto_sleep", 0); /* default values 0*/
+    uint8_t shuffle = user_settings.getUInt("shuffle", 0);
+    uint8_t sort_files = user_settings.getUInt("sort_files", 0);  
+
+    /* write the changed values to the namespace */
+    if(setting->auto_sleep != auto_sleep) {
+        ptr_settings->auto_sleep = setting->auto_sleep;
+    } 
+
+    if(setting->shuffle != shuffle) {
+        ptr_settings->shuffle = setting->shuffle;
+    } 
+
+    if(setting->sort_files != sort_files) {
+        ptr_settings->sort_files = setting->sort_files;
+    } 
+
+    /* update NVS memory */
+    user_settings.putUInt("auto_sleep", ptr_settings->auto_sleep);
+    user_settings.putUInt("shuffle", ptr_settings->shuffle);
+    user_settings.putUInt("sort_files", ptr_settings->sort_files);
+  
 }

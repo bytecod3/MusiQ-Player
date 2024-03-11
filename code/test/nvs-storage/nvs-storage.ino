@@ -17,7 +17,7 @@ typedef struct {
 void updateSettings(Settings* setting) {
   setting->auto_sleep = 5;
   setting->shuffle = 1;
-  setting->sort_files = 0;
+  setting->sort_files = 0;  
 }
 
 void setup() {
