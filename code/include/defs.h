@@ -31,4 +31,12 @@ char* music_list[MAX_NO_OF_FILES];
 int l = (128/2-OUTER_DISC_RADIUS)/4;
 int h = 16;
 
+/* typdef for settings variables */
+typedef struct _userSettings {
+    uint8_t auto_sleep;   /* if set to off, write a 0 here, else can be set to 5 min or 10 min */
+    uint8_t shuffle;      /* on or off */
+    uint8_t sort_files;   /* can be on or off. If on, arrange files from SD card alphabetically, if off, show files as ordered in the SD card */ 
+  
+} Settings;
+
 #endif

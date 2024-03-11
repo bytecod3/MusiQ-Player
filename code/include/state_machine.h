@@ -13,7 +13,7 @@ enum States{
     SD_CARD_INFO,
     EQ,
     SETTINGS,
-    SETTINGS_MENU,
+    SHUFFLE_MENU,
     ABOUT
 };
 

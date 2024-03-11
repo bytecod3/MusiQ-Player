@@ -5,6 +5,7 @@
 #include <Arduino.h>
 #include <U8g2lib.h>
 #include <stdlib.h>
+#include <Preferences.h>
 #include <FS.h>
 #include <SD.h>
 #include <SPI.h>
@@ -14,18 +15,6 @@
 #include "button.h"
 #include "state_machine.h"
 #include "log.h"
-
-/* set DEBUG to 0 to suppress debug messages */
-#define DEBUG 1
-char message_buffer[20]; /* to hold log messages. Check log.cpp for more details */
-/* flags */
-int SDCardFoundFlag = 0;
-
-/* sd card info variables */
-char SDType[10];
-uint64_t SDSize;
-char SDSizeBuffer[10];
-uint32_t noOfFiles;
 
 /* Function prototypes */
 void GPIOInit();
@@ -43,7 +32,26 @@ void SDCardListMusic(fs::FS &fs, const char * dirname);
 char* allocateMemory();
 void copyFilenameToBuffer(int, char*);
 void showMusicFiles();
+void updateSettings(Settings*);
+void showShuffleOptions();
 
+/* set DEBUG to 0 to suppress debug messages */
+#define DEBUG 1
+char message_buffer[20]; /* to hold log messages. Check log.cpp for more details */
+
+/* flags */
+int SDCardFoundFlag = 0;
+
+/* NVS variables - to store configuration */
+Preferences user_settings;
+Settings mySettings;
+Settings* ptr_settings = &mySettings;
+
+/* sd card info variables */
+char SDType[10];
+uint64_t SDSize;
+char SDSizeBuffer[10];
+uint32_t noOfFiles;
 
 /*===========================Buttons===========================*/
 PushButton upButton(UP_BUTTON_PIN);
@@ -63,8 +71,13 @@ PushButton rightButton(RIGHT_BUTTON_PIN);
 #define OLED_SCL 22
 U8G2_SSD1306_128X64_NONAME_F_HW_I2C screen(/*R2: rotation 180*/U8G2_R0, /*reset*/U8X8_PIN_NONE, /* clock */ OLED_SCL, /* data */ OLED_SDA);
 
+/**
+ * Device menus
+*/
 const int NUM_MENU_ITEMS = 7;
-const int NUM_SETTINGS_MENU_ITEMS = 5;
+const int NUM_SETTINGS_MENU_ITEMS = 4;
+const int NUM_SHUFFLE_MENU_ITEMS = 3;
+const int NUM_AUTO_SLEEP_MENU_ITEMS = 5;
 
 char menu_items[NUM_MENU_ITEMS][15] = {
     {"Home"},
@@ -77,10 +90,23 @@ char menu_items[NUM_MENU_ITEMS][15] = {
 };
 
 char setting_menu_items[NUM_SETTINGS_MENU_ITEMS][15] = {
-    {"Shuffle on"},
-    {"Shuffle off"},
+    {"Shuffle"},
     {"Auto sleep"},
     {"Sort files"},
+    {"Back"}
+};
+
+char shuffle_menu_options[NUM_SHUFFLE_MENU_ITEMS][15] = {
+    {"On"},
+    {"Off"},
+    {"Back"}
+};
+
+char auto_sleep_options[NUM_AUTO_SLEEP_MENU_ITEMS][15] = {
+    {"Off"},
+    {"5 Min"},
+    {"10 Min"},
+    {"30 Min"},
     {"Back"}
 };
 
@@ -214,6 +240,11 @@ void loop() {
         case States::SETTINGS:
             /* show settings menu */
             showSettingsMenu();
+            break;
+
+        case States::SHUFFLE_MENU:
+            /* shuffle options - on or off */
+            showShuffleOptions();
             break;
 
         case States::SD_CARD_INFO:
@@ -363,7 +394,7 @@ void loop() {
 
             case 0:
                 /* Shuffle on */
-                /* TODO: process shuffle on - save the config ESP NFS */
+                currentState = States::SHUFFLE_MENU;
                 break;
             
             /* shuffle off */
@@ -403,7 +434,51 @@ void loop() {
        }
 
     /*==========================end of SD_CARD_INFO state==============================*/
-    } 
+    } else if (currentState == States::SHUFFLE_MENU) {
+        /**
+         * SHUFFLE_MENU state
+        */
+
+       if(upButton.isPressed()) {
+            /* previous option  */
+            selected_menu_item = selected_menu_item - 1;
+            if (selected_menu_item < 0) {
+                selected_menu_item = NUM_SETTINGS_MENU_ITEMS - 1;
+            }
+
+       } else if(downButton.isPressed()) {
+            /* next option */
+            selected_menu_item = selected_menu_item + 1;
+            if (selected_menu_item >= NUM_SETTINGS_MENU_ITEMS) {
+                selected_menu_item = 0;
+            } 
+
+       } else if (menuButton.isPressed()) {
+            /* save selected option to NVS. If selected item is back, go back to SETTINGS MENU */
+
+            switch (selected_menu_item) {
+                case 0:
+                    /* shuffle on */
+                    updateSettings(ptr_settings);
+                    break;
+
+                case 1:
+                    /* shuffle off */
+                    Serial.println("Shuffle off");
+                    break;
+
+                case 2:
+                    /* back to settings menu */
+                    currentState = States::SETTINGS;
+                    break;
+                
+                default:
+                    break;
+                }
+       }
+
+
+    }
     
     /* get the menu next and previous items */
     cycleThroughMenu(currentState);
@@ -433,6 +508,13 @@ void cycleThroughMenu(uint8_t state){
         if (previous_menu_item < 0) {
             previous_menu_item = noOfFiles - 1;
         } 
+    } else if (state == States::SHUFFLE_MENU) {
+
+        /* process menu for selecting shuffle on or off */
+        if(previous_menu_item < 0) {
+            previous_menu_item = NUM_SHUFFLE_MENU_ITEMS - 1;
+        }
+
     }
 
     next_menu_item = selected_menu_item + 1;
@@ -446,6 +528,10 @@ void cycleThroughMenu(uint8_t state){
         }
     } else if (currentState == States::SELECTING_MUSIC) {
         if (next_menu_item >= noOfFiles) {
+            next_menu_item = 0;
+        }
+    } else if (currentState == States::SHUFFLE_MENU) {
+        if (next_menu_item >= NUM_SHUFFLE_MENU_ITEMS) {
             next_menu_item = 0;
         }
     }
@@ -663,7 +749,6 @@ void showMenu() {
         screen.drawBitmap(1, 46, 16/8, 16, icons_array[next_menu_item]); 
         screen.drawStr(23, 60, menu_items[next_menu_item]);
 
-        
     } while ( screen.nextPage() );
 
 }
@@ -692,6 +777,31 @@ void showSettingsMenu() {
         screen.drawStr(23, 60, setting_menu_items[next_menu_item]);
 
     } while (screen.nextPage() );
+}
+
+/**
+ * @brief show shuffle settings options 
+*/
+void showShuffleOptions() {
+    screen.firstPage();
+    do {
+        /* selected item background  */
+        screen.drawBitmap(0, 22, 128/8, 20, icons_array[icons_array_length - 1]);
+
+        screen.setFont(u8g2_font_9x15_mf);
+        screen.drawBitmap(1, 2, 16/8, 16, icons_array[previous_menu_item]); 
+        screen.drawStr(23, 16, shuffle_menu_options[previous_menu_item]);
+
+        screen.setFont(u8g2_font_9x15B_mf);
+        screen.drawBitmap(1, 23, 16/8, 16, icons_array[selected_menu_item]); 
+        screen.drawStr(23, 38, shuffle_menu_options[selected_menu_item]);
+
+        screen.setFont(u8g2_font_9x15_mf);
+        screen.drawBitmap(1, 46, 16/8, 16, icons_array[next_menu_item]); 
+        screen.drawStr(23, 60, shuffle_menu_options[next_menu_item]);
+
+
+    } while (screen.nextPage());
 
 }
 
@@ -792,3 +902,16 @@ void showPlayingScreen() {
 }
 
 
+/**
+ *@brief update NVS if the user changes the device settings 
+ *@param Settings* object containing the values of the settings fields
+
+ */
+void updateSettings(Settings* setting) {
+
+    /* read the current values from user namespace */
+    
+  setting->auto_sleep = 0;
+  setting->shuffle = 0;
+  setting->sort_files = 0;  
+}
