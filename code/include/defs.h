@@ -12,7 +12,7 @@
 #define DOWN_BUTTON_PIN GPIO_NUM_35
 #define MENU_BUTTON_PIN GPIO_NUM_33
 #define LEFT_BUTTON_PIN GPIO_NUM_32
-#define RIGHT_BUTTON_PIN GPIO_NUM_25
+#define RIGHT_BUTTON_PIN GPIO_NUM_25  /*TODO: Use pin 23 for the final code on PCB - 25 is being used by the internal DAC */
 
 /* slave select pin for SD card */
 #define SD_SLAVE_SELECT GPIO_NUM_5

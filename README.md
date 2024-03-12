@@ -22,3 +22,6 @@ To implement a Finite State Machine on an electronic consumer product
 7. USB Cable (Type C or B)
 8. Protoboards
 9. TP4056 charging module
+
+### References 
+1. https://www.studiopieters.nl/esp32-program-a-esp32/
