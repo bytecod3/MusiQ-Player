@@ -912,7 +912,7 @@ void updateSettings(Settings* setting) {
     user_settings.begin("settings", true); 
 
     /* read the current values from user namespace */
-    uint8_t auto_sleep = user_settings.getUInt("auto_sleep", 0); /* default values 0*/
+    uint8_t auto_sleep = user_settings.getUInt("auto_sleep", 0); /* default values 0 - all off */
     uint8_t shuffle = user_settings.getUInt("shuffle", 0);
     uint8_t sort_files = user_settings.getUInt("sort_files", 0);  
 
