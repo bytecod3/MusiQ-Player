@@ -8,6 +8,9 @@ To implement a Finite State Machine on an electronic consumer product
 ### State Diagram
 ![state-diagram](./state-diagram/state-diagram.jpg)
 
+### Block Diagram
+![block-diagram](./assets/block-diagram.png)
+
 ### Stack
 1. C++
 2. Platformio
