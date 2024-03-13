@@ -21,6 +21,7 @@ void GPIOInit();
 void screenInit();
 void bootUp();
 void cycleThroughMenu(uint8_t);
+void showSplashScreen();
 void showMenu();
 void showHomeScreen();
 void showPlayingScreen();
@@ -46,6 +47,7 @@ int SDCardFoundFlag = 0;
 Preferences user_settings;
 Settings mySettings;
 Settings* ptr_settings = &mySettings;
+char device_version[13] = "Playa v1.0";
 
 /* sd card info variables */
 char SDType[10];
@@ -122,8 +124,12 @@ unsigned long long stateTimeoutCounterCurrent = 0;
 unsigned long long stateTimeoutCounterPrevious = 0;
 
 /* starting state */
-int currentState = States::HOME;
+int currentState = States::BOOTUP;
 int previousState = States::HOME; /* at start, the current state and previous state are the same */
+
+unsigned long now = 0;
+unsigned long previous_time = 0;
+unsigned long splash_interval = 4000; // show splash screen for splash_inteval milliseconds
 
 static void menuButtonISR(void* arg);
 static void upButtonISR(void* arg);
@@ -132,7 +138,7 @@ static void leftButtonISR(void* arg);
 static void rightButtonISR(void* arg);
 
 /* pointers to ISRs */
-static void (*ptrMenuButtonISR)(void * );
+static void (*ptrMenuButtonISR)(void *);
 static void (*ptrUpButtonISR) (void *);
 static void (*ptrDownButtonISR) (void *);
 static void (*ptrLeftButtonISR) (void *);
@@ -215,16 +221,19 @@ void loop() {
     #endif
 
     switch (currentState) {
+        /* display the splash screen */
+        case States::BOOTUP:
+            showSplashScreen();
+            break;
+
         case States::HOME:        
             /* display the homescreen page */
             showHomeScreen();
-
             break;
 
         case States::MENU:
             /* display the menu */
             showMenu();
-            
             break;
 
         case States::SELECTING_MUSIC:
@@ -719,8 +728,7 @@ void showMusicFiles() {
 */
 void screenInit() {
     screen.begin();
-    screen.setColorIndex(1);
-   
+    screen.setColorIndex(1);   
 }
 
 /**
@@ -802,6 +810,30 @@ void showShuffleOptions() {
 
 
     } while (screen.nextPage());
+
+}
+
+/**
+ * @brief display the splash screen on boot
+*/
+void showSplashScreen() {
+
+    /* check whether boot up time has been exceeded */
+    now = millis();
+    if(now - previous_time > splash_interval) {
+        /* switch state to HOME */
+        currentState = States::HOME;
+        previous_time = now;
+    }
+
+    screen.firstPage();
+    do {
+        screen.drawBitmap(37, 14, 48/8, 40, splash_screen);
+
+        // device version number 
+        screen.setFont(u8g2_font_9x15_mf);
+        screen.drawStr(10, SCREEN_HEIGHT-4, device_version);
+    } while (screen.nextPage() );
 
 }
 

@@ -4,7 +4,8 @@
 
 /* FSM states */
 enum States{
-    HOME = 0,
+    BOOTUP,
+    HOME,
     MENU,
     SELECTING_MUSIC,
     PLAYING,
