@@ -129,7 +129,7 @@ int previousState = States::HOME; /* at start, the current state and previous st
 
 unsigned long now = 0;
 unsigned long previous_time = 0;
-unsigned long splash_interval = 4000; // show splash screen for splash_inteval milliseconds
+unsigned long splash_interval = 4000; /* show splash screen for splash_inteval milliseconds */
 
 static void menuButtonISR(void* arg);
 static void upButtonISR(void* arg);
@@ -818,7 +818,7 @@ void showShuffleOptions() {
 */
 void showSplashScreen() {
 
-    /* check whether boot up time has been exceeded */
+    /* check whether boot up interval is over */
     now = millis();
     if(now - previous_time > splash_interval) {
         /* switch state to HOME */
