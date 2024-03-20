@@ -28,3 +28,6 @@ To implement a Finite State Machine on an electronic consumer product
 
 ### References 
 1. https://www.studiopieters.nl/esp32-program-a-esp32/
+2. https://circuitdigest.com/microcontroller-projects/esp32-based-internet-radio-using-max98357a-i2s-amplifier-board
+3. https://learn.adafruit.com/assets/32642
+4. https://docs.espressif.com/projects/esp-idf/en/v4.4/esp32c3/api-reference/peripherals/i2s.html
