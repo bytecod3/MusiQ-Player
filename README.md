@@ -2,7 +2,7 @@
 An MP3 player clone built on ESP32
 
 ### Motivation 
-To replicate a simpler and/or close-to version of the commom MP3 player already in the market using readily available hardware. 
+To replicate a simpler and/or close-to version of the common MP3 player already in the market using readily available hardware. 
 To implement a Finite State Machine on an electronic consumer product
 
 ### State Diagram
@@ -13,7 +13,33 @@ To implement a Finite State Machine on an electronic consumer product
 
 ### Stack
 1. C++
-2. Platformio
+2. PlatformIO
+
+### Schematic
+
+![schematic](./images/schematic.png)
+
+### PCB Design 
+
+![front](./images/perspective-raytraced.png)
+
+![back](./images/bottom-raytraced.png)
+
+### 3D casing design
+
+![home](./images/home.png)
+
+![front](./images/front-side.png)
+
+![right](./images/right-side.png)
+
+![top](./images/top.png)
+
+![back-side](./images/back-side.png)
+
+![disect](./images/disect.png)
+
+
 
 ### Parts List 
 1. ESP32 WROOM
@@ -25,6 +51,7 @@ To implement a Finite State Machine on an electronic consumer product
 7. USB Cable (Type C or B)
 8. Protoboards
 9. TP4056 charging module
+10. MAX98357 Amplifier module
 
 ### References 
 1. https://www.studiopieters.nl/esp32-program-a-esp32/
