@@ -39,7 +39,7 @@ To implement a Finite State Machine on an electronic consumer product
 
 ![disect](./images/disect.png)
 
-
+The STEP files for 3D printing can be found in the ```3D``` Folder, named ```casing-step.stp```.
 
 ### Parts List 
 1. ESP32 WROOM
